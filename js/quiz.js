@@ -3,24 +3,24 @@ import { DATA } from './data.js';
 export function createQuizController({ state, render, formatTime, shuffle }) {
   let timerId = null;
 
-  function stopTimer(){
+  function stopTimer() {
     clearInterval(timerId);
     timerId = null;
   }
 
-  function startTimer(){
+  function startTimer() {
     stopTimer();
-    timerId = setInterval(()=>{
+    timerId = setInterval(() => {
       const el = document.getElementById('quizTimer');
-      if(!el || !state.quiz) return;
+      if (!el || !state.quiz) return;
       el.textContent = formatTime(Date.now() - state.quiz.startTime);
     }, 1000);
   }
 
-  function startQuiz(items, subjectId, immediate){
+  function startQuiz(items, subjectId, immediate) {
     state.subjectId = subjectId;
     state.quiz = {
-      items: items.map(it => ({...it, chosen:null})),
+      items: items.map(it => ({ ...it, chosen: null })),
       idx: 0,
       startTime: Date.now(),
       immediate: immediate
@@ -30,33 +30,33 @@ export function createQuizController({ state, render, formatTime, shuffle }) {
     startTimer();
   }
 
-  function buildPool(){
+  function buildPool() {
     const subject = DATA[state.subjectId];
     let pool = [];
-    subject.sections.forEach(section=>{
-      if(!state.config.sections.includes(section.id)) return;
-      section.quiz.forEach(question=>{
-        pool.push({...question, sectionId: section.id, sectionShort: section.short});
+    subject.sections.forEach(section => {
+      if (!state.config.sections.includes(section.id)) return;
+      section.quiz.forEach(question => {
+        pool.push({ ...question, sectionId: section.id, sectionShort: section.short });
       });
     });
-    if(state.config.shuffle) pool = shuffle(pool);
-    if(state.config.count !== 999) pool = pool.slice(0, state.config.count);
+    if (state.config.shuffle) pool = shuffle(pool);
+    if (state.config.count !== 999) pool = pool.slice(0, state.config.count);
     return pool;
   }
 
-  function chooseOption(index){
+  function chooseOption(index) {
     const question = state.quiz;
     const item = question.items[question.idx];
-    if(item.chosen !== null && question.immediate) return;
+    if (item.chosen !== null && question.immediate) return;
     item.chosen = index;
     render();
   }
 
-  function nextQuestion(forceSkip = false){
+  function nextQuestion(forceSkip = false) {
     const question = state.quiz;
     const item = question.items[question.idx];
-    if(!forceSkip && item.chosen === null) return;
-    if(question.idx < question.items.length - 1){
+    if (!forceSkip && item.chosen === null) return;
+    if (question.idx < question.items.length - 1) {
       question.idx++;
       render();
     } else {
@@ -64,7 +64,7 @@ export function createQuizController({ state, render, formatTime, shuffle }) {
     }
   }
 
-  function finishQuiz(){
+  function finishQuiz() {
     stopTimer();
     const question = state.quiz;
     const duration = Date.now() - question.startTime;
@@ -82,11 +82,11 @@ export function createQuizController({ state, render, formatTime, shuffle }) {
       correct,
       total: question.items.length,
       pct: Math.round(correct / question.items.length * 100),
-      date: now.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}) + ' ' +
-            now.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})
+      date: now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) + ' ' +
+        now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
     });
     state.history = state.history.slice(0, 20);
-    try { localStorage.setItem('examTrainerHistory', JSON.stringify(state.history)); } catch(e){}
+    try { localStorage.setItem('examTrainerHistory', JSON.stringify(state.history)); } catch (e) { }
 
     state.screen = 'result';
     render();
